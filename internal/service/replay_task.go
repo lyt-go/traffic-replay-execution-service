@@ -61,32 +61,36 @@ func (s *Service) UpdateReplayTask(id string, input model.ReplayTask) (*model.Re
 	if err := input.Validate(); err != nil {
 		return nil, err
 	}
-	t, err := s.store.GetReplayTask(id)
+	current, err := s.store.GetReplayTask(id)
 	if err != nil {
 		return nil, err
 	}
-	if input.Status != "" && input.Status != t.Status {
-		if !model.CanTransitionReplayTask(t.Status, input.Status) {
+	// Work on a copy so that a failed store write leaves the stored record
+	// unchanged. GetReplayTask returns a pointer owned by the store, so
+	// mutating it directly would leak partial updates even when Update fails.
+	updated := *current
+	if input.Status != "" && input.Status != updated.Status {
+		if !model.CanTransitionReplayTask(updated.Status, input.Status) {
 			return nil, model.NewValidationError("status", "回放任务状态流转不合法")
 		}
-		t.Status = input.Status
+		updated.Status = input.Status
 		if input.Status == model.ReplayTaskRunning {
-			t.StartedAt = time.Now()
+			updated.StartedAt = time.Now()
 		}
 		if input.Status == model.ReplayTaskCompleted || input.Status == model.ReplayTaskFailed {
-			t.EndedAt = time.Now()
+			updated.EndedAt = time.Now()
 		}
 	}
-	t.Name = input.Name
-	t.TargetURL = input.TargetURL
-	t.Concurrency = input.Concurrency
-	t.TimeoutMs = input.TimeoutMs
-	t.SampleCount = input.SampleCount
-	t.UpdatedAt = time.Now()
-	if err := s.store.UpdateReplayTask(t); err != nil {
+	updated.Name = input.Name
+	updated.TargetURL = input.TargetURL
+	updated.Concurrency = input.Concurrency
+	updated.TimeoutMs = input.TimeoutMs
+	updated.SampleCount = input.SampleCount
+	updated.UpdatedAt = time.Now()
+	if err := s.store.UpdateReplayTask(&updated); err != nil {
 		return nil, err
 	}
-	return t, nil
+	return &updated, nil
 }
 
 func (s *Service) DeleteReplayTask(id string) error {
