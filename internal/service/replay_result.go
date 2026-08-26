@@ -91,11 +91,16 @@ func (s *Service) ExecuteReplay(replayTaskID string) ([]*model.ReplayResult, err
 	if task.Status != model.ReplayTaskRunning {
 		return nil, model.NewValidationError("status", "回放任务未处于 running 状态")
 	}
+	// 若回放尚未开始，记录开始时间。
+	if task.StartedAt.IsZero() {
+		task.StartedAt = time.Now()
+	}
 	samples := s.store.ListTrafficSamples()
 	if task.SampleCount > 0 && len(samples) > task.SampleCount {
 		samples = samples[:task.SampleCount]
 	}
 	results := make([]*model.ReplayResult, 0, len(samples))
+	var replayErr error
 	for _, sample := range samples {
 		latency := 10 + int(time.Now().UnixNano()%200)
 		matched := sample.StatusCode == 200
@@ -114,9 +119,26 @@ func (s *Service) ExecuteReplay(replayTaskID string) ([]*model.ReplayResult, err
 			ReplayedAt:     time.Now(),
 		}
 		if err := s.store.CreateReplayResult(result); err != nil {
-			return nil, err
+			replayErr = err
+			break
 		}
 		results = append(results, result)
+	}
+
+	// 回放收尾：无论样本处理结果如何，都要把任务状态从 running 流转到终态，
+	// 否则任务会一直卡在 running，调度器看不到任务结束便不会继续后续步骤。
+	endStatus := model.ReplayTaskCompleted
+	if replayErr != nil {
+		endStatus = model.ReplayTaskFailed
+	}
+	task.Status = endStatus
+	task.EndedAt = time.Now()
+	task.UpdatedAt = time.Now()
+	if err := s.store.UpdateReplayTask(task); err != nil {
+		return nil, err
+	}
+	if replayErr != nil {
+		return nil, replayErr
 	}
 	return results, nil
 }
