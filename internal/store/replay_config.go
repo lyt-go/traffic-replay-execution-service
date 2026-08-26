@@ -58,5 +58,7 @@ func (s *MemoryStore) DeleteReplayConfig(id string) error {
 		return ErrNotFound
 	}
 	delete(s.replayConfigs, id)
+	// 级联清理：删除依赖该配置的全部调度计划，避免孤儿数据。
+	s.deleteSchedulesByConfigLocked(id)
 	return nil
 }

@@ -48,5 +48,7 @@ func (s *MemoryStore) DeleteReplayTask(id string) error {
 		return ErrNotFound
 	}
 	delete(s.replayTasks, id)
+	// 级联清理：删除该回放任务产生的全部回放结果，避免孤儿数据。
+	s.deleteReplayResultsByTaskLocked(id)
 	return nil
 }

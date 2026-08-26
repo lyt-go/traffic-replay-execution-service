@@ -48,6 +48,8 @@ func (s *MemoryStore) DeleteTrafficSample(id string) error {
 		return ErrNotFound
 	}
 	delete(s.trafficSamples, id)
+	// 级联清理：删除依赖该样本的全部回放结果，避免孤儿数据。
+	s.deleteReplayResultsBySampleLocked(id)
 	return nil
 }
 

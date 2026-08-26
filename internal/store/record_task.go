@@ -48,5 +48,7 @@ func (s *MemoryStore) DeleteRecordTask(id string) error {
 		return ErrNotFound
 	}
 	delete(s.recordTasks, id)
+	// 级联清理：删除该录制任务产生的流量样本，并连带删除依赖这些样本的回放结果。
+	s.deleteTrafficSamplesByTaskLocked(id)
 	return nil
 }
