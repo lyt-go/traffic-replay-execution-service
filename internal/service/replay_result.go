@@ -91,7 +91,13 @@ func (s *Service) ExecuteReplay(replayTaskID string) ([]*model.ReplayResult, err
 	if task.Status != model.ReplayTaskRunning {
 		return nil, model.NewValidationError("status", "回放任务未处于 running 状态")
 	}
-	samples := s.store.ListTrafficSamples()
+	// 回放任务只处理与之关联的录制样本；未绑定录制任务的旧任务仍处理全部样本。
+	var samples []*model.TrafficSample
+	if task.RecordTaskID != "" {
+		samples = s.store.ListTrafficSamplesByTask(task.RecordTaskID)
+	} else {
+		samples = s.store.ListTrafficSamples()
+	}
 	if task.SampleCount > 0 && len(samples) > task.SampleCount {
 		samples = samples[:task.SampleCount]
 	}
