@@ -64,6 +64,15 @@ func (s *Service) UpdateReplayConfig(id string, input model.ReplayConfig) (*mode
 	if err != nil {
 		return nil, err
 	}
+	// 配置在创建后通过更新被停用（Enabled 由 true 变为 false）时置位，
+	// 重新启用（由 false 变为 true）时清位。这是唯一能让挂在配置上的
+	// 调度计划停止执行的途径——创建时即为停用且从未更新过的旧配置
+	// 不会触发此处逻辑，故其调度计划照常运行。
+	if c.Enabled && !input.Enabled {
+		c.DisabledByUpdate = true
+	} else if !c.Enabled && input.Enabled {
+		c.DisabledByUpdate = false
+	}
 	c.Name = input.Name
 	c.TargetHost = input.TargetHost
 	c.TimeoutMs = input.TimeoutMs

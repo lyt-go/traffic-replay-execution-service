@@ -94,6 +94,16 @@ func (s *Service) RunSchedule(id string) (*model.Schedule, error) {
 	if sch.Status != model.ScheduleActive {
 		return nil, model.NewValidationError("status", "调度计划未处于 active 状态")
 	}
+	// 关联的回放配置若在创建后被更新停用，则调度计划不再执行：
+	// 既不更新 LastRunAt/NextRunAt，也不产生回放记录。
+	// 创建时即为停用且从未更新过的旧配置不在此列，照常运行。
+	cfg, err := s.store.GetReplayConfig(sch.ConfigID)
+	if err != nil {
+		return nil, model.NewValidationError("config_id", "关联的回放配置不存在")
+	}
+	if !cfg.IsScheduleEligible() {
+		return nil, model.NewValidationError("config_id", "关联的回放配置已被停用，调度计划不执行")
+	}
 	now := time.Now()
 	sch.LastRunAt = now
 	sch.NextRunAt = now.Add(time.Minute * 5)

@@ -6,14 +6,23 @@ import (
 )
 
 type ReplayConfig struct {
-	ID         string    `json:"id"`
-	Name       string    `json:"name"`
-	TargetHost string    `json:"target_host"`
-	TimeoutMs  int       `json:"timeout_ms"`
-	Retries    int       `json:"retries"`
-	Enabled    bool      `json:"enabled"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	ID               string    `json:"id"`
+	Name             string    `json:"name"`
+	TargetHost       string    `json:"target_host"`
+	TimeoutMs        int       `json:"timeout_ms"`
+	Retries          int       `json:"retries"`
+	Enabled          bool      `json:"enabled"`
+	DisabledByUpdate bool      `json:"disabled_by_update"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+// IsScheduleEligible 判断挂在配置上的调度计划是否可执行。
+// 仅当配置在创建后通过更新操作被停用（Enabled 由 true 变为 false，
+// 即 DisabledByUpdate=true）时，调度计划不可执行；创建时即为停用
+// 且从未更新过的旧配置仍可执行。
+func (c *ReplayConfig) IsScheduleEligible() bool {
+	return !c.DisabledByUpdate
 }
 
 func (c *ReplayConfig) Validate() error {
