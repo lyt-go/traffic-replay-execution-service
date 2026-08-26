@@ -16,6 +16,16 @@ type TrafficSample struct {
 	CapturedAt   time.Time `json:"captured_at"`
 }
 
+// Clone 返回 TrafficSample 的深拷贝副本。
+// 读取层返回快照，使调用方对返回值的修改不会污染已持久化的数据。
+func (s *TrafficSample) Clone() *TrafficSample {
+	if s == nil {
+		return nil
+	}
+	cp := *s
+	return &cp
+}
+
 func (s *TrafficSample) Validate() error {
 	s.RecordTaskID = strings.TrimSpace(s.RecordTaskID)
 	s.Method = strings.TrimSpace(s.Method)

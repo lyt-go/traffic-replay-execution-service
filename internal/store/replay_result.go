@@ -7,7 +7,7 @@ import (
 func (s *MemoryStore) CreateReplayResult(r *model.ReplayResult) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.replayResults[r.ID] = r
+	s.replayResults[r.ID] = r.Clone()
 	return nil
 }
 
@@ -18,7 +18,7 @@ func (s *MemoryStore) GetReplayResult(id string) (*model.ReplayResult, error) {
 	if !ok {
 		return nil, ErrNotFound
 	}
-	return r, nil
+	return r.Clone(), nil
 }
 
 func (s *MemoryStore) ListReplayResults() []*model.ReplayResult {
@@ -26,7 +26,7 @@ func (s *MemoryStore) ListReplayResults() []*model.ReplayResult {
 	defer s.mu.RUnlock()
 	list := make([]*model.ReplayResult, 0, len(s.replayResults))
 	for _, r := range s.replayResults {
-		list = append(list, r)
+		list = append(list, r.Clone())
 	}
 	return list
 }
@@ -37,7 +37,7 @@ func (s *MemoryStore) UpdateReplayResult(r *model.ReplayResult) error {
 	if _, ok := s.replayResults[r.ID]; !ok {
 		return ErrNotFound
 	}
-	s.replayResults[r.ID] = r
+	s.replayResults[r.ID] = r.Clone()
 	return nil
 }
 
@@ -57,7 +57,7 @@ func (s *MemoryStore) ListReplayResultsByTask(replayTaskID string) []*model.Repl
 	list := make([]*model.ReplayResult, 0)
 	for _, r := range s.replayResults {
 		if r.ReplayTaskID == replayTaskID {
-			list = append(list, r)
+			list = append(list, r.Clone())
 		}
 	}
 	return list

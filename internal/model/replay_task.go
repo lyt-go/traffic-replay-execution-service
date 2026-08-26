@@ -40,6 +40,16 @@ type ReplayTask struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+// Clone 返回 ReplayTask 的深拷贝副本。
+// 读取层返回快照，使调用方对返回值的修改不会污染已持久化的数据。
+func (t *ReplayTask) Clone() *ReplayTask {
+	if t == nil {
+		return nil
+	}
+	cp := *t
+	return &cp
+}
+
 func (t *ReplayTask) Validate() error {
 	t.Name = strings.TrimSpace(t.Name)
 	t.TargetURL = strings.TrimSpace(t.TargetURL)

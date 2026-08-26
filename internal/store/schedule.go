@@ -7,7 +7,7 @@ import (
 func (s *MemoryStore) CreateSchedule(sch *model.Schedule) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.schedules[sch.ID] = sch
+	s.schedules[sch.ID] = sch.Clone()
 	return nil
 }
 
@@ -18,7 +18,7 @@ func (s *MemoryStore) GetSchedule(id string) (*model.Schedule, error) {
 	if !ok {
 		return nil, ErrNotFound
 	}
-	return sch, nil
+	return sch.Clone(), nil
 }
 
 func (s *MemoryStore) ListSchedules() []*model.Schedule {
@@ -26,7 +26,7 @@ func (s *MemoryStore) ListSchedules() []*model.Schedule {
 	defer s.mu.RUnlock()
 	list := make([]*model.Schedule, 0, len(s.schedules))
 	for _, sch := range s.schedules {
-		list = append(list, sch)
+		list = append(list, sch.Clone())
 	}
 	return list
 }
@@ -37,7 +37,7 @@ func (s *MemoryStore) UpdateSchedule(sch *model.Schedule) error {
 	if _, ok := s.schedules[sch.ID]; !ok {
 		return ErrNotFound
 	}
-	s.schedules[sch.ID] = sch
+	s.schedules[sch.ID] = sch.Clone()
 	return nil
 }
 

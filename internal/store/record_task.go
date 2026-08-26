@@ -7,7 +7,7 @@ import (
 func (s *MemoryStore) CreateRecordTask(t *model.RecordTask) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.recordTasks[t.ID] = t
+	s.recordTasks[t.ID] = t.Clone()
 	return nil
 }
 
@@ -18,7 +18,7 @@ func (s *MemoryStore) GetRecordTask(id string) (*model.RecordTask, error) {
 	if !ok {
 		return nil, ErrNotFound
 	}
-	return t, nil
+	return t.Clone(), nil
 }
 
 func (s *MemoryStore) ListRecordTasks() []*model.RecordTask {
@@ -26,7 +26,7 @@ func (s *MemoryStore) ListRecordTasks() []*model.RecordTask {
 	defer s.mu.RUnlock()
 	list := make([]*model.RecordTask, 0, len(s.recordTasks))
 	for _, t := range s.recordTasks {
-		list = append(list, t)
+		list = append(list, t.Clone())
 	}
 	return list
 }
@@ -37,7 +37,7 @@ func (s *MemoryStore) UpdateRecordTask(t *model.RecordTask) error {
 	if _, ok := s.recordTasks[t.ID]; !ok {
 		return ErrNotFound
 	}
-	s.recordTasks[t.ID] = t
+	s.recordTasks[t.ID] = t.Clone()
 	return nil
 }
 

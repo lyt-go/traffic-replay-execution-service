@@ -39,6 +39,16 @@ type RecordTask struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 }
 
+// Clone 返回 RecordTask 的深拷贝副本。
+// 读取层返回快照，使调用方对返回值的修改不会污染已持久化的数据。
+func (t *RecordTask) Clone() *RecordTask {
+	if t == nil {
+		return nil
+	}
+	cp := *t
+	return &cp
+}
+
 func (t *RecordTask) Validate() error {
 	t.Name = strings.TrimSpace(t.Name)
 	t.SourceURL = strings.TrimSpace(t.SourceURL)

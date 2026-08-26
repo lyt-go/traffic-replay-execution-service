@@ -34,6 +34,16 @@ type Schedule struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// Clone 返回 Schedule 的深拷贝副本。
+// 读取层返回快照，使调用方对返回值的修改不会污染已持久化的数据。
+func (s *Schedule) Clone() *Schedule {
+	if s == nil {
+		return nil
+	}
+	cp := *s
+	return &cp
+}
+
 func (s *Schedule) Validate() error {
 	s.Name = strings.TrimSpace(s.Name)
 	s.ConfigID = strings.TrimSpace(s.ConfigID)

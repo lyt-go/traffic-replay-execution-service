@@ -12,7 +12,7 @@ func (s *MemoryStore) CreateReplayConfig(c *model.ReplayConfig) error {
 			return ErrConflict
 		}
 	}
-	s.replayConfigs[c.ID] = c
+	s.replayConfigs[c.ID] = c.Clone()
 	return nil
 }
 
@@ -23,7 +23,7 @@ func (s *MemoryStore) GetReplayConfig(id string) (*model.ReplayConfig, error) {
 	if !ok {
 		return nil, ErrNotFound
 	}
-	return c, nil
+	return c.Clone(), nil
 }
 
 func (s *MemoryStore) ListReplayConfigs() []*model.ReplayConfig {
@@ -31,7 +31,7 @@ func (s *MemoryStore) ListReplayConfigs() []*model.ReplayConfig {
 	defer s.mu.RUnlock()
 	list := make([]*model.ReplayConfig, 0, len(s.replayConfigs))
 	for _, c := range s.replayConfigs {
-		list = append(list, c)
+		list = append(list, c.Clone())
 	}
 	return list
 }
@@ -47,7 +47,7 @@ func (s *MemoryStore) UpdateReplayConfig(c *model.ReplayConfig) error {
 			return ErrConflict
 		}
 	}
-	s.replayConfigs[c.ID] = c
+	s.replayConfigs[c.ID] = c.Clone()
 	return nil
 }
 

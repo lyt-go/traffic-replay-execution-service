@@ -16,6 +16,16 @@ type ReplayConfig struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 }
 
+// Clone 返回 ReplayConfig 的深拷贝副本。
+// 读取层返回快照，使调用方对返回值的修改不会污染已持久化的数据。
+func (c *ReplayConfig) Clone() *ReplayConfig {
+	if c == nil {
+		return nil
+	}
+	cp := *c
+	return &cp
+}
+
 func (c *ReplayConfig) Validate() error {
 	c.Name = strings.TrimSpace(c.Name)
 	c.TargetHost = strings.TrimSpace(c.TargetHost)

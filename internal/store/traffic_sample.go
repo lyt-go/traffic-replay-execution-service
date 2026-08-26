@@ -7,7 +7,7 @@ import (
 func (s *MemoryStore) CreateTrafficSample(sample *model.TrafficSample) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.trafficSamples[sample.ID] = sample
+	s.trafficSamples[sample.ID] = sample.Clone()
 	return nil
 }
 
@@ -18,7 +18,7 @@ func (s *MemoryStore) GetTrafficSample(id string) (*model.TrafficSample, error) 
 	if !ok {
 		return nil, ErrNotFound
 	}
-	return sample, nil
+	return sample.Clone(), nil
 }
 
 func (s *MemoryStore) ListTrafficSamples() []*model.TrafficSample {
@@ -26,7 +26,7 @@ func (s *MemoryStore) ListTrafficSamples() []*model.TrafficSample {
 	defer s.mu.RUnlock()
 	list := make([]*model.TrafficSample, 0, len(s.trafficSamples))
 	for _, sample := range s.trafficSamples {
-		list = append(list, sample)
+		list = append(list, sample.Clone())
 	}
 	return list
 }
@@ -37,7 +37,7 @@ func (s *MemoryStore) UpdateTrafficSample(sample *model.TrafficSample) error {
 	if _, ok := s.trafficSamples[sample.ID]; !ok {
 		return ErrNotFound
 	}
-	s.trafficSamples[sample.ID] = sample
+	s.trafficSamples[sample.ID] = sample.Clone()
 	return nil
 }
 
@@ -55,7 +55,7 @@ func (s *MemoryStore) BatchCreateTrafficSamples(samples []*model.TrafficSample) 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, sample := range samples {
-		s.trafficSamples[sample.ID] = sample
+		s.trafficSamples[sample.ID] = sample.Clone()
 	}
 	return nil
 }
@@ -66,7 +66,7 @@ func (s *MemoryStore) ListTrafficSamplesByTask(recordTaskID string) []*model.Tra
 	list := make([]*model.TrafficSample, 0)
 	for _, sample := range s.trafficSamples {
 		if sample.RecordTaskID == recordTaskID {
-			list = append(list, sample)
+			list = append(list, sample.Clone())
 		}
 	}
 	return list

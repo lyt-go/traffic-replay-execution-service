@@ -16,6 +16,16 @@ type ReplayResult struct {
 	ReplayedAt     time.Time `json:"replayed_at"`
 }
 
+// Clone 返回 ReplayResult 的深拷贝副本。
+// 读取层返回快照，使调用方对返回值的修改不会污染已持久化的数据。
+func (r *ReplayResult) Clone() *ReplayResult {
+	if r == nil {
+		return nil
+	}
+	cp := *r
+	return &cp
+}
+
 func (r *ReplayResult) Validate() error {
 	r.ReplayTaskID = strings.TrimSpace(r.ReplayTaskID)
 	r.SampleID = strings.TrimSpace(r.SampleID)
