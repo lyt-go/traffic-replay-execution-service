@@ -48,5 +48,11 @@ func (s *MemoryStore) DeleteRecordTask(id string) error {
 		return ErrNotFound
 	}
 	delete(s.recordTasks, id)
+	// 级联删除该录制任务关联的流量样本，使二者生命周期一致。
+	for sid, sample := range s.trafficSamples {
+		if sample.RecordTaskID == id {
+			delete(s.trafficSamples, sid)
+		}
+	}
 	return nil
 }
