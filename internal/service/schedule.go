@@ -66,6 +66,10 @@ func (s *Service) UpdateSchedule(id string, input model.Schedule) (*model.Schedu
 	if err != nil {
 		return nil, err
 	}
+	// 校验关联的回放配置存在，避免无效编号覆盖原有绑定
+	if _, err := s.store.GetReplayConfig(input.ConfigID); err != nil {
+		return nil, model.NewValidationError("config_id", "关联的回放配置不存在")
+	}
 	if input.Status != "" && input.Status != sch.Status {
 		if !model.CanTransitionSchedule(sch.Status, input.Status) {
 			return nil, model.NewValidationError("status", "调度计划状态流转不合法")
