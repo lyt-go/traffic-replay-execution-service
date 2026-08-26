@@ -26,6 +26,12 @@ func CanTransitionReplayTask(from, to string) bool {
 	return false
 }
 
+// IsReplayTaskTerminal 报告回放任务是否处于结束状态（completed/failed）。
+// 结束的任务应保持不变，不能再为其写入新的回放结果。
+func IsReplayTaskTerminal(status string) bool {
+	return status == ReplayTaskCompleted || status == ReplayTaskFailed
+}
+
 type ReplayTask struct {
 	ID          string    `json:"id"`
 	Name        string    `json:"name"`

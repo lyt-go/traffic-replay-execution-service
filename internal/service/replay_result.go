@@ -12,8 +12,12 @@ func (s *Service) CreateReplayResult(input model.ReplayResult) (*model.ReplayRes
 	if err := input.Validate(); err != nil {
 		return nil, err
 	}
-	if _, err := s.store.GetReplayTask(input.ReplayTaskID); err != nil {
+	task, err := s.store.GetReplayTask(input.ReplayTaskID)
+	if err != nil {
 		return nil, model.NewValidationError("replay_task_id", "关联的回放任务不存在")
+	}
+	if model.IsReplayTaskTerminal(task.Status) {
+		return nil, model.NewValidationError("replay_task_id", "回放任务已结束，不能再写入新的回放结果")
 	}
 	if _, err := s.store.GetTrafficSample(input.SampleID); err != nil {
 		return nil, model.NewValidationError("sample_id", "关联的样本不存在")
